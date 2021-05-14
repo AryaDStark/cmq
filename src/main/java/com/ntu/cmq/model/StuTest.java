@@ -8,7 +8,8 @@ import lombok.Setter;
  * */
 @Getter
 @Setter
-public class StudentTest {
+public class StuTest {
+    private Long id;
     private Long testId;
     public Long studentId;
     private Integer score;

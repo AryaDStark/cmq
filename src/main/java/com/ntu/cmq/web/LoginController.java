@@ -4,10 +4,7 @@ import com.ntu.cmq.model.Result;
 import com.ntu.cmq.model.User;
 import com.ntu.cmq.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 
@@ -25,7 +22,7 @@ public class LoginController {
      * 登录
      * */
     @PostMapping("/login")
-    public Result login(String username, String password, HttpSession session){
+    public Result login(@RequestParam String username,@RequestParam  String password, HttpSession session){
         User user = userService.getByUsername(username);
         if (null==user){ return Result.fail().setMsg("输入用户名不正确");}
         else {
@@ -56,7 +53,7 @@ public class LoginController {
      * 注册
      * */
     @PostMapping("/register")
-    public Result register(String username,String password,Integer status){
+    public Result register(@RequestParam String username,@RequestParam String password,@RequestParam Integer status){
         if (null != userService.getByUsername(username)){ return Result.fail().setMsg("用户名重复，换一个");}
         User user = new User();
         user.setUsername(username);
@@ -65,6 +62,17 @@ public class LoginController {
         userService.insertUser(user);
         if (user.getId()>0){ return Result.ok().setMsg("注册成功");}
         else {return Result.fail().setMsg("注册失败");}
+    }
+
+    /**
+     * 修改密码
+     * */
+    @PostMapping("/changePwd")
+    public Result changePwd(@RequestParam Long userId,@RequestParam String password){
+        User user = userService.getById(userId);
+        user.setPassword(password);
+        if (userService.updateUser(user)>0)return Result.ok();
+        else return Result.fail();
     }
 
 

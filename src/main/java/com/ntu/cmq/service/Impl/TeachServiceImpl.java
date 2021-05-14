@@ -33,4 +33,9 @@ public class TeachServiceImpl implements TeachService {
     public int updateTeach(Teach teach) {
         return teachMapper.updateTeach(teach);
     }
+
+    @Override
+    public int delTeach(Long id) {
+        return teachMapper.delTeach(id);
+    }
 }

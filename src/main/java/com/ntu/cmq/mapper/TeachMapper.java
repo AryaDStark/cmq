@@ -14,4 +14,5 @@ public interface TeachMapper {
     Teach getById(Long id);
     int insertTeach(Teach teach);
     int updateTeach(Teach teach);
+    int delTeach(Long id);
 }

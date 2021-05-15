@@ -48,6 +48,7 @@ public class Controller {
 
     /**
      * 通过id获取teach
+     * @param id
      * */
     @GetMapping("/teach")
     public Result getCourse(Long id){
@@ -58,12 +59,20 @@ public class Controller {
         else {return Result.fail().setMsg("失败");}
     }
 
+    /**
+     * 删除teach
+     * @param id
+     * */
     @GetMapping("/delTeach/{id}")
     public Result delTeach(@PathVariable Long id){
         if (teachService.delTeach(id)>0) return Result.ok();
         else return Result.fail().setMsg("删除失败");
     }
 
+    /**
+     * 获取course的content
+     * @param id
+     * */
     @GetMapping("/course/content")
     public Result getContent(Long id){
         Course course = courseService.getById(id);
@@ -71,6 +80,10 @@ public class Controller {
         else {return Result.fail().setMsg("失败");}
     }
 
+    /**
+     * 添加course
+     * @param teacherId , courseId
+     * */
     @PostMapping("/course/add")
     public Result addCourse(@RequestParam Long teacherId,@RequestParam Long courseId){
         Teach teach = new Teach();
@@ -80,6 +93,10 @@ public class Controller {
         else {return Result.fail().setMsg("失败");}
     }
 
+    /**
+     * 展示所有teach和所有course
+     * @param
+     * */
     @GetMapping("/course/allCourses")
     public Result showCourses(){
         List<Teach> teaches = teachService.getAllTeach();
@@ -99,6 +116,10 @@ public class Controller {
        }
     }
 
+    /**
+     * 添加teach
+     * @param teachId userId
+     * */
     @GetMapping("/teach/add")
     public Result addStu(@RequestParam Long teachId,@RequestParam Long userId){
         Teach teach = teachService.getById(teachId);
@@ -115,6 +136,10 @@ public class Controller {
         else {return Result.fail().setMsg("添加失败");}
     }
 
+    /**
+     * 向user的teachIds 中加入一个teachId
+     * @param teachId userId
+     * */
     @GetMapping("/teach/top")
     public Result top(@RequestParam Long teachId,@RequestParam Long userId){
         User user = userService.getById(userId);
@@ -126,7 +151,11 @@ public class Controller {
         else { return Result.fail().setMsg("失败");}
     }
 
-    @GetMapping("/signIn/add")
+    /**
+     * 新增签到
+     * @param ’json对象‘  pre、teachId、startTime、duringTime、status
+     * */
+    @PostMapping("/signIn/add")
     public Result signInAdd(SignIn signIn){
         SignIn newSignIn = new SignIn();
         newSignIn.setPre(signIn.getPre());
@@ -138,6 +167,10 @@ public class Controller {
         else { return Result.fail().setMsg("失败");}
     }
 
+    /**
+     * 学生签到 向signIn中加入一个studentId
+     * @param signInId studentId
+     * */
     @GetMapping("/signIn/signIn")
     public Result signIn(@RequestParam Long signInId,@RequestParam Long studentId){
         SignIn signIn = signInService.getById(signInId);
@@ -149,6 +182,10 @@ public class Controller {
          else return Result.fail().setMsg("失败");
     }
 
+    /**
+     * 获取签到
+     * @param studentId teachId
+     * */
     @GetMapping("/signIn/get")
     public Result signInGet(@RequestParam Long studentId,@RequestParam Long teachId){
         List<SignInDto> signInDtos = signInService.getByTeach(teachId);
@@ -170,6 +207,10 @@ public class Controller {
         return Result.ok().setMsg("").setData("signIns",signInDtos);
     }
 
+    /**
+     * 删除签到
+     * @param id
+     * */
     @GetMapping("/delSignIn")
     public Result delSignIn(Long id){
         if(signInService.delSignIn(id)>0)
@@ -177,6 +218,10 @@ public class Controller {
         else return Result.fail().setMsg("删除失败");
     }
 
+    /**
+     * 获取test
+     * @param teachId studentId
+     * */
     @GetMapping("/getTest")
     public Result getTest(@RequestParam Long teachId,@RequestParam Long studentId){
         List<Test> testsT = testService.getByTeach(teachId);
@@ -202,7 +247,11 @@ public class Controller {
          return Result.ok().setMsg("ok").setData("testsByTeach",tests1).setData("testsByTeachAndStu",tests2);
     }
 
-    @GetMapping("/addTest")
+    /**
+     * 添加测试
+     * @param 'json对象' teachId、time、content
+     * */
+    @PostMapping("/addTest")
     public Result addTest(TestDto testDto){
         Test test = new Test();
         test.setTeachId(testDto.getTeachId());
@@ -212,13 +261,21 @@ public class Controller {
         else return Result.fail().setMsg("add fail");
     }
 
+    /**
+     * 做测试
+     * @param testId
+     * */
     @GetMapping("/doTest")
     public Result doTest(Long testId){
         Test test = testService.getById(testId);
         return Result.ok().setMsg("ok").setData("test",test);
     }
 
-    @GetMapping("/finishTest")
+    /**
+     * 完成测试
+     * @param 'json' testId、stuId、teachId、teachId、content
+     * */
+    @PostMapping("/finishTest")
     public Result finishTest(StuTestDto stuTestDto){
         StuTest stuTest = new StuTest();
         stuTest.setTestId(stuTestDto.getTestId());
@@ -229,13 +286,21 @@ public class Controller {
         else return Result.fail().setMsg("fail add");
     }
 
+    /**
+     * 测试打分
+     * @param id、 score
+     * */
     @GetMapping("/score")
     public Result score(@RequestParam Long id,@RequestParam int score){
         if (stuTestService.updateScore(id,score)>0) return Result.ok();
         else return Result.fail().setMsg("fail score");
     }
 
-    @GetMapping("/updateTest")
+    /**
+     * 测试更新content
+     * @param 'json对象' id、content
+     * */
+    @PostMapping("/updateTest")
     public Result changeTest(TestDto testDto){
         Test test = testService.getById(testDto.getId());
         test.setContent(String.join(",",testDto.getContent()));
@@ -243,18 +308,29 @@ public class Controller {
         else return Result.fail().setMsg("fail change");
     }
 
+    /**
+     * 删除测试
+     * @param id
+     * */
     @GetMapping("/delTest")
     public Result delTest(Long id){
         if (testService.delTest(id)>0)return Result.ok();
         else return Result.fail().setMsg("fail del");
     }
 
+    /**
+     * 根据 teachId 获取means
+     * @param teachId
+     * */
     @GetMapping("/getMean")
     public Result getMean(Long teachId){
         return Result.ok().setData("means",meanService.getByTeach(teachId));
     }
 
-    //上传文件
+    /**
+     * 上传文件
+     * @param 'MultipartFile' 、 name、 teachId
+     * */
     @PostMapping("/upload")
     public Result upload(@RequestParam MultipartFile file,@RequestParam String name,@RequestParam Long teachId){
         String originalFileName=file.getOriginalFilename();
@@ -275,7 +351,10 @@ public class Controller {
         }
     }
 
-    //下载文件
+    /**
+     * 下载文件
+     * @param id、 boolean isOnline
+     * */
     @PostMapping("/download")
     public Result download(@RequestParam Long id, HttpServletResponse response,@RequestParam boolean isOnline)throws IOException{
        if (meanService.getById(id)!=null)
@@ -308,7 +387,11 @@ public class Controller {
        else return Result.fail().setMsg("id wrong");
     }
 
-    @GetMapping("/upWork")
+    /**
+     * 添加work
+     * @param  'name'、teachId、content
+     * */
+    @PostMapping("/upWork")
     public Result upWork(Work work){
         WorkDto workDto = new WorkDto();
         workDto.setName(work.getName());
@@ -318,6 +401,10 @@ public class Controller {
         else return Result.fail().setMsg("fail add");
     }
 
+    /**
+     * 根据teachId获取works
+     * @param teachId
+     * */
     @GetMapping("/getWork")
     public Result getWork(Long teachId){
         List<Work> works = new ArrayList<>();
@@ -331,18 +418,30 @@ public class Controller {
         return Result.ok().setData("works",works);
     }
 
-    @GetMapping("/correctWord")
+    /**
+     * 批改作业
+     * @param 'workId'、stuId、score
+     * */
+    @PostMapping("/correctWork")
     public Result correctWork(StuWork stuWork){
         if (stuWorkService.addStuWork(stuWork)>0)return Result.ok();
         else return Result.fail();
     }
 
+    /**
+     * 获取成绩
+     * @param workId、stuId
+     * */
     @GetMapping("/getScore")
      public Result getScore(@RequestParam Long workId,@RequestParam Long stuId){
         return Result.ok().setData("score",stuWorkService.getScore(workId,stuId));
     }
 
-    @GetMapping("/upCourseware")
+    /**
+     * 新增courseware
+     * @param 'json对象' teachId、content
+     * */
+    @PostMapping("/upCourseware")
     public Result upCourseware(CoursewareDto coursewareDto){
         Courseware courseware = new Courseware();
         courseware.setTeachId(coursewareDto.getTeachId());
@@ -351,6 +450,10 @@ public class Controller {
         else return Result.fail();
     }
 
+    /**
+     * 根据teachId获得courseware
+     * @param teachId
+     * */
     @GetMapping("/getCourseware")
     public Result getCourseware(Long teachId){
         List<Courseware> coursewares = coursewareService.getByTeach(teachId);
@@ -365,6 +468,10 @@ public class Controller {
         return Result.ok().setData("coursewares",coursewareDtos);
     }
 
+    /**
+     * 根据teachId删除courseware
+     * @param teachId
+     * */
     @GetMapping("/delCourseware")
     public Result delCourseware(Long teachId){
         if (coursewareService.delByTeach(teachId)>0)return Result.ok();

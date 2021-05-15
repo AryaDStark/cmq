@@ -20,6 +20,7 @@ public class LoginController {
 
     /**
      * 登录
+     * @param username、password
      * */
     @PostMapping("/login")
     public Result login(@RequestParam String username,@RequestParam  String password, HttpSession session){
@@ -51,6 +52,7 @@ public class LoginController {
 
     /**
      * 注册
+     * @param username password status
      * */
     @PostMapping("/register")
     public Result register(@RequestParam String username,@RequestParam String password,@RequestParam Integer status){
@@ -66,6 +68,7 @@ public class LoginController {
 
     /**
      * 修改密码
+     * @param userId password
      * */
     @PostMapping("/changePwd")
     public Result changePwd(@RequestParam Long userId,@RequestParam String password){

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ntu.cmq.mapper.SignInMapper">
+    <select id="getById" resultType="com.ntu.cmq.model.dto.SignInDto">
+        select * from signin where id=#{id};
+    </select>
+    <select id="getByTeach" resultType="com.ntu.cmq.model.dto.SignInDto">
+        select * from signin where teach_id=#{id};
+    </select>
+    <insert id="insertSignIn" keyProperty="id" useGeneratedKeys="true">
+        insert into signin (teach_id,pre,start_time,during_time,status)
+        values (#{teachId},#{pre},#{startTime},#{duringTime},#{status});
+    </insert>
+    <update id="updateSignin">
+        update signin set student_ids=#{studentIds} where id=#{id};
+    </update>
+    <delete id="delSignin">
+        delete from signin where id=#{id};
+    </delete>
+</mapper>

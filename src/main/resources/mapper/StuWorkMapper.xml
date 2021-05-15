@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ntu.cmq.mapper.StuWorkMapper">
+    <insert id="addStuWork" keyProperty="id" useGeneratedKeys="true">
+        insert into student_work (work_id,student_id,score) values (#{workId},#{studentId},#{score});
+    </insert>
+    <select id="getScore" resultType="com.ntu.cmq.model.Work">
+        select * from student_work where work_id=#{workId} and student_id=#{stuId};
+    </select>
+</mapper>

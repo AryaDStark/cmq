@@ -12,7 +12,6 @@ import java.util.List;
 public interface MeanMapper {
     Mean getById(Long id);
     List<Mean> getByTeach(Long teachId);
-
     int addMean(Mean mean);
 
 

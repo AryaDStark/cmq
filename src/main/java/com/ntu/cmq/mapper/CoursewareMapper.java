@@ -10,7 +10,7 @@ import java.util.List;
  */
 @Mapper
 public interface CoursewareMapper {
-    int addCourseware(Courseware courseware);
     List<Courseware> getByTeach(Long teachId);
+    int addCourseware(Courseware courseware);
     int delByTeach(Long id);
 }

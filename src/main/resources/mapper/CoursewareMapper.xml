@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ntu.cmq.mapper.CourseMapper">
+    <select id="getByTeach" resultType="com.ntu.cmq.model.Courseware">
+        select * from courseware where teach_id=#{teachId};
+    </select>
+    <insert id="addCourseware" useGeneratedKeys="true" keyProperty="id">
+        insert into courseware (teach_id,content) values (#{teachId},#{content});
+    </insert>
+    <delete id="delByTeach">
+        delete from courseware where teach_id=#{id};
+    </delete>
+</mapper>

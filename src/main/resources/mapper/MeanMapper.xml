@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ntu.cmq.mapper.MeanMapper">
+    <select id="getById" resultType="com.ntu.cmq.model.Mean">
+        select * from mean where id=#{id};
+    </select>
+    <select id="getByTeach" resultType="com.ntu.cmq.model.Mean">
+        select * from mean where teach_id=#{teachId};
+    </select>
+    <insert id="addMean" keyProperty="id" useGeneratedKeys="true">
+        insert into mean (name,teach_id,address) values (#{name},#{teachId},#{address});
+    </insert>
+</mapper>

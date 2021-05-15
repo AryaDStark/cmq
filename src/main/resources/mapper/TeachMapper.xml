@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ntu.cmq.mapper.TeachMapper">
+    <select id="getAllTeach" resultType="com.ntu.cmq.model.Teach">
+        select * from teach;
+    </select>
+    <select id="getById" resultType="com.ntu.cmq.model.Teach">
+        select * from teach where id=#{id};
+    </select>
+    <insert id="insertTeach" useGeneratedKeys="true" keyProperty="id">
+        insert into teach (teacher_id,course_id) values (teacherId,courseId);
+    </insert>
+    <update id="updateTeach" >
+        update teach set student_ids=#{student_ids} where id=#{id};
+    </update>
+    <delete id="delTeach">
+        delete from teach where id=#{id};
+    </delete>
+</mapper>

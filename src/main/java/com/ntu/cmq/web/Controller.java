@@ -3,13 +3,18 @@ package com.ntu.cmq.web;
 import com.ntu.cmq.model.*;
 import com.ntu.cmq.model.dto.*;
 import com.ntu.cmq.service.*;
+import com.sun.deploy.net.HttpResponse;
 import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import sun.misc.IOUtils;
 
-import java.io.File;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -270,7 +275,39 @@ public class Controller {
         }
     }
 
-    //上传作业
+    //下载文件
+    @PostMapping("/download")
+    public Result download(@RequestParam Long id, HttpServletResponse response,@RequestParam boolean isOnline)throws IOException{
+       if (meanService.getById(id)!=null)
+       {
+           String address = meanService.getById(id).getAddress();
+           File file = new File(address);
+           int len = 0;
+           if (file.exists()){
+               String filename = file.getName();
+               filename = new String(filename.getBytes(StandardCharsets.UTF_8),"ISO-8859-1");
+               BufferedInputStream bi =new BufferedInputStream(new FileInputStream(file));
+               byte[] buf = new byte[5*1024];
+               response.reset();
+               if (isOnline){ //在线打开
+                   URL url = new URL("file:///"+address);
+                   response.setContentType(url.openConnection().getContentType());
+                   response.setHeader("Content-Disposition","inline;filename="+filename);
+               }else {//下载
+                   response.setContentType("application/x-msdownload");
+                   response.setHeader("Content-Disposition", "attachment; filename=" + filename);
+               }
+               OutputStream out = response.getOutputStream();
+               while ((len = bi.read(buf)) > 0)
+                   out.write(buf, 0, len);
+               bi.close();
+               out.close();
+           }
+           return Result.ok();
+       }
+       else return Result.fail().setMsg("id wrong");
+    }
+
     @GetMapping("/upWork")
     public Result upWork(Work work){
         WorkDto workDto = new WorkDto();

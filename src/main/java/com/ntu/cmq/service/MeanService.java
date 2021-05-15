@@ -1,7 +1,6 @@
 package com.ntu.cmq.service;
 
 import com.ntu.cmq.model.Mean;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 

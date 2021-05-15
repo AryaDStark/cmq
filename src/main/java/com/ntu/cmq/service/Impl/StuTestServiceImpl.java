@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
  * @author Arya
  */
 @Service
-public class StuTestServiceImpl implements StuTestService{
+public class StuTestServiceImpl implements StuTestService {
 
     @Autowired
     StuTestMapper stuTestMapper;

@@ -23,7 +23,8 @@ public class LoginController {
      * @param username、password
      * */
     @PostMapping("/login")
-    public Result login(@RequestParam String username,@RequestParam  String password, HttpSession session){
+    @ResponseBody
+    public Result login(@RequestParam String username, @RequestParam  String password, HttpSession session){
         User user = userService.getByUsername(username);
         if (null==user){ return Result.fail().setMsg("输入用户名不正确");}
         else {

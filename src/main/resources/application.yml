@@ -1,19 +1,20 @@
-path:
-  filePath: C:\Users\Arya\Desktop\CMQTest
 spring:
+
  datasource:
- driver-class-name: com.mysql.cj.jdbc.Driver
- url: jdbc:mysql://localhost:3306/cmq?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
- username: root
- password: 1234
+  driver-class-name: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://localhost:3306/cmq?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
+  username: root
+  password: 1234
 
+path:
+ filePath: E:\\test
 
-#mybatis ÅäÖÃ mapperÖÐ  resultTypeµÄÇ°×º
 mybatis:
-type-aliases-package: com.ntu.cmq.model
-mapper-locations: classpath:mapper/*Mapper.xml
+ mapper-locations: classpath:mapper/*Mapper.xml
 
 
+ #    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+ #    database-platform: com.yangyu.util.MySQL5InnoDBDialectUtf8mb4
 
 #logging:
 #  level:
@@ -22,9 +23,4 @@ mapper-locations: classpath:mapper/*Mapper.xml
 #  file:
 #    name: log/blog-dev.log
 server:
-port: 8080
-pagehelper:
-helper-dialect: mysql
-reasonable: true
-support-methods-arguments: true
-params: count=countSql
+ port: 8080

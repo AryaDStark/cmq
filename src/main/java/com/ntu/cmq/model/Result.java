@@ -1,13 +1,15 @@
 package com.ntu.cmq.model;
 
+import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author cmq
  */
+@Getter
+@Setter
 public class Result {
     private Boolean success;
     private Integer code;
@@ -41,7 +43,7 @@ public class Result {
     }
 
     public Result setData(String a,Object b) {
-        this.data.put(a,b);
+        data.put(a,b);
         return this;
     }
 }

@@ -3,13 +3,11 @@ package com.ntu.cmq.web;
 import com.ntu.cmq.model.*;
 import com.ntu.cmq.model.dto.*;
 import com.ntu.cmq.service.*;
-import com.sun.deploy.net.HttpResponse;
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import sun.misc.IOUtils;
+
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -46,6 +44,7 @@ public class Controller {
     @Autowired
     CoursewareService coursewareService;
 
+
     /**
      * 通过id获取teach
      * @param id
@@ -53,7 +52,7 @@ public class Controller {
     @GetMapping("/teach")
     public Result getCourse(Long id){
         Teach teach = teachService.getById(id);
-        if (null==teach) return Result.fail().setMsg("teach不存在");
+        if (null==teach) return Result.fail().setMsg("teach不存在").setData("","");
         Course course = courseService.getById(teach.getCourseId());
         if (null!=teach&&null!=course){return Result.ok().setMsg("成功").setData("teachId",id).setData("course",course);}
         else {return Result.fail().setMsg("失败");}

@@ -12,7 +12,7 @@
     <insert id="insertTeach" useGeneratedKeys="true" keyProperty="id">
         insert into teach (teacher_id,course_id) values (teacherId,courseId);
     </insert>
-    <update id="updateTeach" >
+    <update id="updateTeach">
         update teach set student_ids=#{student_ids} where id=#{id};
     </update>
     <delete id="delTeach">

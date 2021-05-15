@@ -1,7 +1,6 @@
 package com.ntu.cmq.service.Impl;
 
 import com.ntu.cmq.mapper.WorkMapper;
-import com.ntu.cmq.model.Work;
 import com.ntu.cmq.model.dto.WorkDto;
 import com.ntu.cmq.service.WorkService;
 import org.springframework.beans.factory.annotation.Autowired;

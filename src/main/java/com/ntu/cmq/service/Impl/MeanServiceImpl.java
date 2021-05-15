@@ -3,10 +3,8 @@ package com.ntu.cmq.service.Impl;
 import com.ntu.cmq.mapper.MeanMapper;
 import com.ntu.cmq.model.Mean;
 import com.ntu.cmq.service.MeanService;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 

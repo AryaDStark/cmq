@@ -3,7 +3,6 @@ package com.ntu.cmq.service.Impl;
 import com.ntu.cmq.mapper.TestMapper;
 import com.ntu.cmq.model.Test;
 import com.ntu.cmq.service.TestService;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

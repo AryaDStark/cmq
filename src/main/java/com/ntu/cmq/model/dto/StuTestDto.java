@@ -1,6 +1,5 @@
 package com.ntu.cmq.model.dto;
 
-import com.ntu.cmq.model.Test;
 import lombok.Getter;
 import lombok.Setter;
 

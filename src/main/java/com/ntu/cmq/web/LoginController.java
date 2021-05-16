@@ -19,12 +19,30 @@ public class LoginController {
 
 
     /**
-     * 登录
+     * 学生登录
      * @param username、password
      * */
     @PostMapping("/login")
     @ResponseBody
     public Result login(@RequestParam String username, @RequestParam  String password, HttpSession session){
+        User user = userService.getByUsername(username);
+        if (null==user){ return Result.fail().setMsg("输入用户名不正确");}
+        else {
+            if (password != user.getPassword()){ return Result.fail().setMsg("输入密码不正确");}
+            else {
+                session.setAttribute("user",user);
+                return Result.ok().setMsg("用户名,密码正确").setData("身份",user.getStatus());
+            }
+        }
+    }
+
+    /**
+     * 老师登录
+     * @param username、password
+     * */
+    @PostMapping("/teacherLogin")
+    @ResponseBody
+    public Result tLogin(@RequestParam String username, @RequestParam  String password, HttpSession session){
         User user = userService.getByUsername(username);
         if (null==user){ return Result.fail().setMsg("输入用户名不正确");}
         else {

@@ -28,6 +28,7 @@ public class LoginController {
         User user = userService.getByUsername(username);
         if (null==user){ return Result.fail().setMsg("输入用户名不正确");}
         else {
+            if (user.getStatus()==0){return Result.fail().setMsg("输入用户名不正确");}
             if (password != user.getPassword()){ return Result.fail().setMsg("输入密码不正确");}
             else {
                 session.setAttribute("user",user);
@@ -46,6 +47,7 @@ public class LoginController {
         User user = userService.getByUsername(username);
         if (null==user){ return Result.fail().setMsg("输入用户名不正确");}
         else {
+            if (user.getStatus()==1){return Result.fail().setMsg("输入用户名不正确");}
             if (password != user.getPassword()){ return Result.fail().setMsg("输入密码不正确");}
             else {
                 session.setAttribute("user",user);

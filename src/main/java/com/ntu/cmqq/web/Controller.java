@@ -2,9 +2,7 @@ package com.ntu.cmqq.web;
 
 import com.baomidou.mybatisplus.core.conditions.Condition;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.ntu.cmqq.dto.JoinTeach;
-import com.ntu.cmqq.dto.TeachDto;
-import com.ntu.cmqq.dto.TeachTop;
+import com.ntu.cmqq.dto.*;
 import com.ntu.cmqq.entity.*;
 import com.ntu.cmqq.service.*;
 import com.ntu.cmqq.util.Result;
@@ -209,10 +207,116 @@ public class Controller {
 
     @PostMapping("/createSignin")
     public Result createSignIn(@RequestBody Signin signin){
-        return null;
-
+        if (signinService.save(signin)) return Result.ok();
+        else return Result.fail();
     }
 
+    @GetMapping("/joinSignin")
+    public Result jionSignIn(@RequestParam int studentId,@RequestParam int signinId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("student_id",studentId);
+        wrapper.eq("signin_id",signinId);
+        StuSignin stuSignin = stuSigninService.getOne(wrapper);
+        stuSignin.setIsSignin(true);
+        if (stuSigninService.update(stuSignin,wrapper))return Result.ok();
+        else return Result.fail();
+    }
 
+    @GetMapping("/deleteSignin")
+    public Result delSignIn(int signinId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("id",signinId);
+        if(!signinService.remove(wrapper)) return Result.fail().setMsg("signin del fail");
+        QueryWrapper wrapper1 = new QueryWrapper();
+        wrapper.eq("signin_id",signinId);
+        if(!stuSigninService.remove(wrapper1)) return Result.fail().setMsg("stuSignin del fail");
+        return Result.ok();
+    }
+
+    @GetMapping("/getSignin")
+    public Result getSignIn(@RequestParam int signinId,@RequestParam int studentId){
+        QueryWrapper wrapper = new QueryWrapper();
+        Signin signin = signinService.getById(signinId);
+        wrapper.eq("signin_id",signinId);
+        wrapper.eq("student_id",studentId);
+        StuSignin stuSignin = stuSigninService.getOne(wrapper);
+        return Result.ok().setData("signIn",signin).setData("stuSignIN",stuSignin);
+    }
+
+    @GetMapping("/getSigninTeacher")
+    public Result tGetSignIn(@RequestParam int signinId){
+        SignInDto signInDto = new SignInDto();
+        Signin signin = signinService.getById(signinId);
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("signin_id",signin);
+        List<StuSignin> stuSignins = stuSigninService.list(wrapper);
+        signInDto.setId(signinId);
+        signInDto.setPre(signin.getPre());
+        signInDto.setTeachId(signin.getTeachId());
+        signInDto.setStartTime(signin.getStartTime());
+        signInDto.setStatus(signin.getStatus());
+        signInDto.setStuSignins(stuSignins);
+        return Result.ok().setData("signIn",signInDto);
+    }
+
+    @PostMapping("/createTest")
+    public Result createTest(@RequestBody TestDto testDto){
+        Test test = new Test();
+        test.setTeachId(testDto.getTeachId());
+        test.setTime(testDto.getTime());
+        test.setName(testDto.getName());
+        test.setContent(String.join("//", testDto.getContent()));
+        if (testService.save(test)) return Result.ok();
+        else return Result.fail();
+    }
+
+    @PostMapping("/changeTest")
+    public Result changeTest(@RequestBody TestDto testDto){
+        Test test = testService.getById(testDto.getId());
+        test.setTime(testDto.getTime());
+        test.setName(testDto.getName());
+        test.setContent(String.join("//", testDto.getContent()));
+        if (testService.updateById(test)) return Result.ok();
+        else return Result.fail();
+    }
+
+    @GetMapping("/getTest")
+    public Result getTest(int testId){
+        TestDto testDto = new TestDto();
+        Test test = testService.getById(testId);
+        testDto.setId(testId);
+        testDto.setName(test.getName());
+        testDto.setTeachId(test.getTeachId());
+        testDto.setTime(test.getTime());
+        testDto.setContent(test.getContent().split("//"));
+        return Result.ok().setData("test",testDto);
+    }
+
+    @GetMapping("/getStudentTestList")
+    public Result gStuTest(@RequestParam int teachId,@RequestParam int studentId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        List<Test> tests = testService.list(wrapper);
+        List<StuTestDto> stuTestDtos = new ArrayList<>();
+        for (Test test:tests){
+            StuTestDto stuTestDto = new StuTestDto();
+            stuTestDto.setId(test.getId());
+            stuTestDto.setTeachId(teachId);
+            stuTestDto.setTime(test.getTime());
+            QueryWrapper wrapper1 = new QueryWrapper();
+            wrapper1.eq("test_id",test.getId());
+            wrapper1.eq("student_id",studentId);
+            stuTestDto.setStuTest(stuTestService.getOne(wrapper));
+            stuTestDtos.add(stuTestDto);
+        }
+        return Result.ok().setData("tests",stuTestDtos);
+    }
+
+    @GetMapping("/getTeacherTestList")
+    public Result gTeacherTests(@RequestParam int teachId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        return Result.ok().setData("tests",testService.list(wrapper));
+    }
 }
 

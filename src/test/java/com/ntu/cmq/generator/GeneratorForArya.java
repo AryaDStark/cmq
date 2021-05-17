@@ -12,7 +12,7 @@ import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 
 
 public class GeneratorForArya {
-    public static void mainT(String[] args) {
+    public static void mainTTTTTTT(String[] args) {
         //代码生成器对象
         AutoGenerator autoGenerator=new AutoGenerator();
 
@@ -55,7 +55,7 @@ public class GeneratorForArya {
 
         //策略配置
         StrategyConfig strategy=new StrategyConfig();
-        strategy.setInclude("course","courseware","means","signin","student","teach","teacher","test","work","stu_signin","stu_teach","stu_test","stu_work");                     //设置映射的表名
+        strategy.setInclude("course","courseware","means","signin","student","teach","teacher","test","work","stu_signin","stu_teach","stu_test","stu_work","achieve");                     //设置映射的表名
         strategy.setNaming(NamingStrategy.underline_to_camel); //设置驼峰命名法
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);
 //        strategy.setSuperEntityClass("你自己的父类实体，没有就不用配置");

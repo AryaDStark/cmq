@@ -30,7 +30,7 @@ public class Means implements Serializable {
 
     private String name;
 
-    private Integer testId;
+    private Integer teachId;
 
     private String address;
 

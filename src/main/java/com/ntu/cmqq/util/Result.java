@@ -1,4 +1,4 @@
-package com.ntu.cmq.model;
+package com.ntu.cmqq.util;
 
 import lombok.Getter;
 import lombok.Setter;

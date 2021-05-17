@@ -2,19 +2,22 @@ spring:
 
  datasource:
   driver-class-name: com.mysql.cj.jdbc.Driver
-  url: jdbc:mysql://localhost:3306/cmq?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
+  url: jdbc:mysql://localhost:3306/cmqq?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
   username: root
   password: 1234
 
 path:
  filePath: E:\\test
 
-mybatis:
- mapper-locations: classpath:mapper/*Mapper.xml
+mybatis-plus:
+ configuration:
+   log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
 
 
  #    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
  #    database-platform: com.yangyu.util.MySQL5InnoDBDialectUtf8mb4
+ mapper-locations: classpath:com/ntu/cmqq/mapper/xml/*Mapper.xml
 
 #logging:
 #  level:
@@ -23,4 +26,4 @@ mybatis:
 #  file:
 #    name: log/blog-dev.log
 server:
- port: 8080
+ port: 9000

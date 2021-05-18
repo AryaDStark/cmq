@@ -16,5 +16,6 @@ public class User {
     private String nickname;
     private String school;
     private int status;     //1学生  0老师
+    private String pPassword;
 
 }

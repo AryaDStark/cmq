@@ -7,10 +7,11 @@ import com.ntu.cmqq.entity.Teacher;
 import com.ntu.cmqq.service.StudentService;
 import com.ntu.cmqq.service.TeacherService;
 import com.ntu.cmqq.util.Result;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpSession;
 
 /**
  * @author Arya
@@ -24,7 +25,7 @@ public class LoginController {
     TeacherService teacherService;
 
     @PostMapping("/login")
-    public Result checkStu(@RequestBody Student studentF){
+    public Result checkStu(@RequestBody Student studentF, HttpSession session){
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("username",studentF.getUsername());
         Student student = studentService.getOne(wrapper);
@@ -32,12 +33,13 @@ public class LoginController {
         if (!studentF.getPassword().equals(studentF.getPassword())) return Result.fail().setMsg("wrong pwd");
         else {
             student.setPassword("");
+            session.setAttribute(studentF.getUsername()+"student",student);
             return Result.ok().setData("student",student);
         }
     }
 
     @PostMapping("/teacherLogin")
-    public Result checkTeacher(@RequestBody Teacher teacherF){
+    public Result checkTeacher(@RequestBody Teacher teacherF,HttpSession session){
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("username",teacherF.getUsername());
         Teacher teacher = teacherService.getOne(wrapper);
@@ -45,6 +47,7 @@ public class LoginController {
         if (!teacherF.getPassword().equals(teacher.getPassword()))return Result.fail().setMsg("wrong pwd");
         else {
             teacher.setPassword("");
+            session.setAttribute(teacherF.getUsername()+"teacher",teacher);
             return Result.ok().setData("teacher",teacher);
         }
     }
@@ -83,6 +86,7 @@ public class LoginController {
        if (user.getStatus()==1){//学生
            Student student = studentService.getById(user.getId());
            if (student==null)return Result.fail().setMsg("wrong id");
+           if (user.getPPassword()!=student.getPassword()) return Result.fail().setMsg("原密码错误");
            student.setPassword(user.getPassword());
            if (studentService.updateById(student)) return Result.ok();
            else return Result.fail().setMsg("stu.pwd修改失败");
@@ -90,10 +94,34 @@ public class LoginController {
         if (user.getStatus()==0){//老师
             Teacher teacher =teacherService.getById(user.getId());
             if (teacher==null)return Result.fail().setMsg("wrong id");
+            if (user.getPPassword()!=teacher.getPassword()) return Result.fail().setMsg("原密码错误");
             teacher.setPassword(user.getPassword());
             if (teacherService.updateById(teacher)) return Result.ok();
             else return Result.fail().setMsg("teacher.pwd修改失败");
         }
         else return Result.fail().setMsg("wrong status");
     }
+
+    @GetMapping("/logout")
+    public Result logout(@RequestParam int id,@RequestParam int status,HttpSession session){
+        if (status==1){//学生
+            Student student = (Student) session.getAttribute(studentService.getById(id).getUsername()+"student");
+            if (student!=null){
+                session.removeAttribute(student.getUsername()+"student");
+                return Result.ok();
+            }
+            else return Result.fail();
+        }
+        if (status==0){//老师
+            Teacher teacher = (Teacher) session.getAttribute(teacherService.getById(id).getUsername()+"teacher");
+            if (teacher!=null){
+                session.removeAttribute(teacher.getUsername()+"teacher");
+                return Result.ok();
+            }
+            else return Result.fail();
+        }
+        else return Result.fail().setMsg("wrong status");
+    }
+
+
 }

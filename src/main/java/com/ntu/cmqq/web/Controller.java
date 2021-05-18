@@ -408,12 +408,54 @@ public class Controller {
     }
 
     @GetMapping("/getStudentWorkList")
-    public Result getStuWork(@RequestParam int workId,@RequestParam int studentId){
-        return null;
-
-
+    public Result getStuWork(@RequestParam int teachId,@RequestParam int studentId){
+        List<WorkDto> workDtos = new ArrayList<>();
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        for (Work work:(List<Work>)workService.list(wrapper)){
+            WorkDto workDto = new WorkDto();
+            workDto.setId(work.getId());
+            workDto.setTeachId(teachId);
+            workDto.setName(work.getName());
+            QueryWrapper wrapper1 = new QueryWrapper();
+            wrapper1.eq("work_id",work.getId());
+            wrapper1.eq("student_id",studentId);
+            workDto.setStuWork(stuWorkService.getOne(wrapper1));
+            workDto.setContent(work.getContent().split("//"));
+            workDtos.add(workDto);
+        }
+        return Result.ok().setData("works",workDtos);
     }
 
+    @GetMapping("/getStudentWorkDetailList")
+    public Result getStuWorkDetail(@RequestParam int teachId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        List<Student> students = new ArrayList<>();
+        for (StuTeach stuTeach:(List<StuTeach>)stuTeachService.list(wrapper)){
+            Student student = studentService.getById(stuTeach.getStudentId());
+            student.setPassword("");
+            students.add(student);
+        }
+        return Result.ok().setData("students",students);
+    }
+
+    @GetMapping("/deleteWork")
+    public Result delWork(@RequestParam int workId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("work_id",workId);
+        if (workService.removeById(workId)&&stuWorkService.remove(wrapper)) return Result.ok();
+        else return Result.fail();
+    }
+
+    @GetMapping("/getTeacherWorkList")
+    public Result getTeacherWorks(@RequestParam int teachId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        return Result.ok().setData("works",workService.list(wrapper));
+    }
+
+//    @PostMapping()
 
 }
 

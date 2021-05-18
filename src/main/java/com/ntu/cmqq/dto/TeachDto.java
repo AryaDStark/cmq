@@ -1,6 +1,7 @@
 package com.ntu.cmqq.dto;
 
 import com.ntu.cmqq.entity.Course;
+import com.ntu.cmqq.entity.Teacher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,4 +20,5 @@ public class TeachDto {
     private Course course;
     private boolean isTop;
     private String description;
+    private Teacher teacher;
 }

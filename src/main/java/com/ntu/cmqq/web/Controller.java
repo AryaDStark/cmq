@@ -43,6 +43,10 @@ public class Controller {
     CoursewareService coursewareService;
     @Autowired
     AchieveService achieveService;
+    @Autowired
+    StudentService studentService;
+    @Autowired
+    TeacherService teacherService;
 
 
     @GetMapping("/getTeach")
@@ -53,7 +57,7 @@ public class Controller {
             List<Teach> teachList = teachService.list(wrapper);
             List<TeachDto> teachDtos = new ArrayList<>();
             for (Teach teach:teachList){
-                TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription());
+                TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),null);
                 teachDtos.add(teachDto);
             }
             return Result.ok().setData("teaches",teachDtos);
@@ -65,7 +69,7 @@ public class Controller {
             List<TeachDto> teachDtos = new ArrayList<>();
             for (StuTeach stuTeach:stuTeaches){
                 Teach teach = teachService.getById(stuTeach.getTeachId());
-                TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription());
+                TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),null);
                 teachDtos.add(teachDto);
             }
             return Result.ok().setData("teaches",teachDtos);
@@ -75,7 +79,12 @@ public class Controller {
 
     @GetMapping("/getALLTeach")
     public Result getAllTeach(){
-        return Result.ok().setData("teaches",teachService.list(null));
+        List<TeachDto> teachDtos = new ArrayList<>();
+        for (Teach teach:(List<Teach>)teachService.list(null)){
+            TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),teacherService.getById(teach.getTeacherId()));
+            teachDtos.add(teachDto);
+        }
+        return Result.ok().setData("teaches",teachDtos);
     }
 
     @PostMapping("/createTeach")
@@ -317,6 +326,50 @@ public class Controller {
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("teach_id",teachId);
         return Result.ok().setData("tests",testService.list(wrapper));
+    }
+
+    @GetMapping("/getStudentTestList")
+    public Result getStuTest(@RequestParam int teachId,@RequestParam int testId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        Student student;
+        List<StuDto> stuDtos = new ArrayList<>();
+        for (StuTeach stuTeach:(List<StuTeach>)stuTeachService.list(wrapper)){
+            student = studentService.getById(stuTeach.getStudentId());
+            QueryWrapper wrapper1 = new QueryWrapper();
+            wrapper1.eq("test_id",testId);
+            wrapper1.eq("student_id",stuTeach.getStudentId());
+            StuDto stuDto = new StuDto(student.getId(),student.getNickname(),student.getSchool(),student.getDescription(),student.getStatus(),stuTestService.getOne(wrapper1));
+            stuDtos.add(stuDto);
+        }
+        return Result.ok().setData("students",stuDtos);
+    }
+
+    @GetMapping("/getTestDetail")
+    public Result getTestDetail(@RequestParam int testId,@RequestParam int studentId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("test_id",testId);
+        wrapper.eq("student_id",studentId);
+        return Result.ok().setData("test",testService.getById(testId)).setData("stuTest",stuTestService.getOne(wrapper));
+    }
+
+    @PostMapping("/giveTestScore")
+    public Result giveTestScore(@RequestBody StuTest stuTestF){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("student_id",stuTestF.getStudentId());
+        wrapper.eq("test_id",stuTestF.getTestId());
+        StuTest stuTest = stuTestService.getOne(wrapper);
+        stuTest.setScore(stuTestF.getScore());
+        if (stuTestService.updateById(stuTest)) return Result.ok();
+        else return Result.fail();
+    }
+
+    @GetMapping("/deleteTest")
+    public Result delTest(int testId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("test_id",testId);
+        if (stuTestService.remove(wrapper)&&testService.removeById(testId)) return Result.ok();
+        else return Result.fail();
     }
 }
 

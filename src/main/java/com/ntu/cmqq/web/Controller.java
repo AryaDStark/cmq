@@ -81,7 +81,9 @@ public class Controller {
     public Result getAllTeach(){
         List<TeachDto> teachDtos = new ArrayList<>();
         for (Teach teach:(List<Teach>)teachService.list(null)){
-            TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),teacherService.getById(teach.getTeacherId()));
+            Teacher teacher = teacherService.getById(teach.getTeacherId());
+            teacher.setPassword("");
+            TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),teacher);
             teachDtos.add(teachDto);
         }
         return Result.ok().setData("teaches",teachDtos);
@@ -328,7 +330,7 @@ public class Controller {
         return Result.ok().setData("tests",testService.list(wrapper));
     }
 
-    @GetMapping("/getStudentTestList")
+    @GetMapping("/getStudentTestDetailList")
     public Result getStuTest(@RequestParam int teachId,@RequestParam int testId){
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("teach_id",teachId);
@@ -371,5 +373,9 @@ public class Controller {
         if (stuTestService.remove(wrapper)&&testService.removeById(testId)) return Result.ok();
         else return Result.fail();
     }
+
+
+
+
 }
 

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class LoginController {
-    private QueryWrapper wrapper = new QueryWrapper();
+
     @Autowired
     StudentService studentService;
     @Autowired
@@ -25,6 +25,7 @@ public class LoginController {
 
     @PostMapping("/login")
     public Result checkStu(@RequestBody Student studentF){
+        QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("username",studentF.getUsername());
         Student student = studentService.getOne(wrapper);
         if (null==student)return Result.fail().setMsg("wrong username");
@@ -37,6 +38,7 @@ public class LoginController {
 
     @PostMapping("/teacherLogin")
     public Result checkTeacher(@RequestBody Teacher teacherF){
+        QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("username",teacherF.getUsername());
         Teacher teacher = teacherService.getOne(wrapper);
         if(null==teacher)return Result.fail().setMsg("WRONG USERNAME");
@@ -49,6 +51,7 @@ public class LoginController {
 
     @PostMapping("/register")
     public Result register(@RequestBody User user){
+        QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("username",user.getUsername());
         if (studentService.getOne(wrapper)!=null||teacherService.getOne(wrapper)!=null) return Result.fail().setMsg("用户名已存在");
         if (user.getStatus()==1) {

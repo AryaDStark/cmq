@@ -1,14 +1,20 @@
 package com.ntu.cmqq.web;
 
-import com.baomidou.mybatisplus.core.conditions.Condition;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.ntu.cmqq.dto.*;
 import com.ntu.cmqq.entity.*;
 import com.ntu.cmqq.service.*;
 import com.ntu.cmqq.util.Result;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.apache.commons.io.IOUtils;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +25,8 @@ import java.util.List;
 @RestController
 public class Controller {
 
+    @Value("${path.filePath}")
+    private String path;
     @Autowired
     TeachService teachService;
     @Autowired
@@ -100,8 +108,13 @@ public class Controller {
         teach.setDescription(teachF.getDescription());
         teach.setTeacherId(teachF.getTeacherId());
         teach.setIsTop(false);
-        if (teachService.save(teach))return Result.ok();
-        else return Result.fail().setMsg("add fail");
+        if (!teachService.save(teach))return Result.fail();
+        Achieve achieve = new Achieve();
+        achieve.setTeachId(teach.getId());
+        achieve.setWork("0.5");
+        achieve.setTest("0.5");
+        if (!achieveService.save(achieve)) return Result.fail();
+        else return Result.ok();
     }
 
     @GetMapping("/getAllCourse")
@@ -455,7 +468,131 @@ public class Controller {
         return Result.ok().setData("works",workService.list(wrapper));
     }
 
-//    @PostMapping()
+    @PostMapping("/giveWorkScore")
+    public Result giveScore(@RequestBody StuWork stuWork){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("student_id",stuWork.getStudentId());
+        wrapper.eq("work_id",stuWork.getWorkId());
+        if(stuWorkService.update(stuWork,wrapper)) return Result.ok();
+        else  return Result.fail();
+    }
+
+    @PostMapping("/updateMeans")
+    public Result upMeans(@RequestBody FileDto fileDto){
+        MultipartFile file = fileDto.getFile();
+        if (file.isEmpty())return Result.fail().setMsg("file wrong");
+        String fileName = file.getOriginalFilename();
+       //存储路径
+        String address = path+"\\"+fileName;
+        File dest = new File(address);
+        //如果目录不存在则创建
+        if (!dest.getParentFile().exists()) dest.getParentFile().mkdir();
+        try {
+            file.transferTo(dest);
+            Means means = new Means();
+            means.setName(fileDto.getName());
+            means.setTeachId(fileDto.getTeachId());
+            means.setAddress(address);
+            if (meansService.save(means)) return Result.ok();
+            else return Result.fail().setMsg("save fail");
+
+        }catch (IOException e){
+            e.printStackTrace();
+            return Result.fail().setMsg("up fail");
+        }
+
+    }
+
+    @GetMapping("/downloadMeans")
+    public Result download(int id, HttpServletResponse response)throws Exception{
+        Means means = meansService.getById(id);
+        if (means==null) return Result.fail().setMsg("wrong id");
+        String address = means.getAddress();
+        File file = new File(address);
+        if (file.exists()){
+            IOUtils.copy(FileUtils.openInputStream(file),response.getOutputStream());
+            return Result.ok();
+        }else return Result.fail().setMsg("file丢失");
+    }
+
+    @GetMapping("/getMeanList")
+    public Result getMeans(int teachId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        return Result.ok().setData("means",meansService.list(wrapper));
+    }
+
+    @GetMapping("/deleteMeans")
+    public Result delMeans(int id){
+        if (meansService.removeById(id)) return Result.ok();
+        else return Result.fail();
+    }
+
+    @PostMapping("/createCourseware")
+    public Result createCourseware(@RequestBody CoursewareDto coursewareDto){
+        Courseware courseware = new Courseware();
+        courseware.setName(coursewareDto.getName());
+        courseware.setTeachId(coursewareDto.getTeachId());
+        courseware.setContent(String.join("//",coursewareDto.getContent()));
+        if (coursewareService.save(courseware)) return Result.ok();
+        else return  Result.fail();
+    }
+
+    @GetMapping("/getCoursewareList")
+    public Result getCourseList(int teachId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        return Result.ok().setData("coursewares",coursewareService.list(wrapper));
+    }
+
+    @GetMapping("/deleteCourseware")
+    public Result delCourseware(int id){
+        if(coursewareService.removeById(id)) return Result.ok();
+        else return Result.fail();
+    }
+
+    @PostMapping("/changeCourseware")
+    public Result changeCourseware(@RequestBody CoursewareDto coursewareDto){
+        Courseware courseware = new Courseware();
+        courseware.setId(coursewareDto.getId());
+        courseware.setName(coursewareDto.getName());
+        courseware.setContent(String.join("//",coursewareDto.getContent()));
+       if(coursewareService.updateById(courseware)) return Result.ok() ;
+       else return Result.fail();
+    }
+
+    @GetMapping("/getAchieve")
+    public Result getAchieve(int teachId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        return Result.ok().setData("achieve",achieveService.getOne(wrapper));
+    }
+
+    @PostMapping("/changeAchieve")
+    public Result changeAchieve(@RequestBody Achieve achieveF){
+        Achieve achieve = achieveService.getById(achieveF.getId());
+        achieve.setTest(achieveF.getTest());
+        achieveF.setWork(achieveF.getWork());
+        if (achieveService.updateById(achieve)) return Result.ok();
+        else return Result.fail();
+    }
+
+    @GetMapping("/getScore")
+    public Result getScore(@RequestParam int teachId,@RequestParam int studentId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        Achieve achieve = achieveService.getOne(wrapper);
+        String testStr = achieve.getTest();
+        String workStr = achieve.getWork();
+        QueryWrapper wrapper1 = new QueryWrapper();
+        wrapper1.eq("student_id",studentId);
+        StuTest stuTest = stuTestService.getOne(wrapper1);
+        int scoreT = stuTest.getScore();
+        StuWork stuWork = stuWorkService.getOne(wrapper1);
+        int scoreW = stuWork.getScore();
+        return Result.ok().setData("score",scoreT*Double.parseDouble(testStr)+scoreW*Double.parseDouble(workStr));
+    }
+
 
 }
 

@@ -57,7 +57,9 @@ public class Controller {
             List<Teach> teachList = teachService.list(wrapper);
             List<TeachDto> teachDtos = new ArrayList<>();
             for (Teach teach:teachList){
-                TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),null);
+                QueryWrapper wrapper1 = new QueryWrapper();
+                wrapper1.eq("teach_id",teach.getId());
+                TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),null,stuTeachService.count(wrapper1));
                 teachDtos.add(teachDto);
             }
             return Result.ok().setData("teaches",teachDtos);
@@ -68,8 +70,10 @@ public class Controller {
             List<StuTeach> stuTeaches = stuTeachService.list(wrapper);
             List<TeachDto> teachDtos = new ArrayList<>();
             for (StuTeach stuTeach:stuTeaches){
+                QueryWrapper wrapper1 = new QueryWrapper();
+                wrapper1.eq("teach_id",stuTeach.getTeachId());
                 Teach teach = teachService.getById(stuTeach.getTeachId());
-                TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),null);
+                TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),null,stuTeachService.count(wrapper1));
                 teachDtos.add(teachDto);
             }
             return Result.ok().setData("teaches",teachDtos);
@@ -83,7 +87,7 @@ public class Controller {
         for (Teach teach:(List<Teach>)teachService.list(null)){
             Teacher teacher = teacherService.getById(teach.getTeacherId());
             teacher.setPassword("");
-            TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),teacher);
+            TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),teacher,0);
             teachDtos.add(teachDto);
         }
         return Result.ok().setData("teaches",teachDtos);
@@ -374,7 +378,41 @@ public class Controller {
         else return Result.fail();
     }
 
+    @PostMapping("/createWork")
+    public Result createWork(@RequestBody WorkDto workDto){
+        Work work = new Work();
+        work.setTeachId(workDto.getTeachId());
+        work.setContent(String.join("//",workDto.getContent()));
+        work.setName(workDto.getName());
+        workService.save(work);
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",workDto.getTeachId());
+        for (StuTeach stuTeach:(List<StuTeach>)stuTeachService.list(wrapper)){
+            StuWork stuWork = new StuWork();
+            stuWork.setWorkId(work.getId());
+            stuWork.setStudentId(stuTeach.getStudentId());
+            stuWorkService.save(stuWork);
+        }
+        return Result.ok();
+    }
 
+    @PostMapping("/changeWork")
+    public Result changeWork(@RequestBody WorkDto workDto){
+        Work work = new Work();
+        work.setId(workDto.getId());
+        work.setName(workDto.getName());
+        work.setContent(String.join("//",workDto.getContent()));
+        if (workService.updateById(work)) return Result.ok();
+        else return Result.fail();
+
+    }
+
+    @GetMapping("/getStudentWorkList")
+    public Result getStuWork(@RequestParam int workId,@RequestParam int studentId){
+        return null;
+
+
+    }
 
 
 }

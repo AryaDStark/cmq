@@ -21,4 +21,5 @@ public class TeachDto {
     private boolean isTop;
     private String description;
     private Teacher teacher;
+    private Integer stuNum;
 }

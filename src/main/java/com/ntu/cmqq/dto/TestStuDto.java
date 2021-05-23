@@ -5,23 +5,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * @author Arya
- */
-@Getter
 @Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TestDto {
+public class TestStuDto {
+    private Integer testId;
 
-    private Integer id;
+    private Integer studentId;
 
-    private Integer teachId;
-
-    private String time;
-
-    private String name;
+    private Integer score;
 
     private String[] content;
 
+    private Boolean isPush;
 }

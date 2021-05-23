@@ -14,7 +14,7 @@ public class WorkDto {
 
     private Integer teachId;
 
-    private String[] content;
+    private String content;
 
     private String name;
 

@@ -30,7 +30,7 @@ public class LoginController {
         wrapper.eq("username",studentF.getUsername());
         Student student = studentService.getOne(wrapper);
         if (null==student)return Result.fail().setMsg("wrong username");
-        if (!studentF.getPassword().equals(studentF.getPassword())) return Result.fail().setMsg("wrong pwd");
+        if (!studentF.getPassword().equals(student.getPassword())) return Result.fail().setMsg("wrong pwd");
         else {
             student.setPassword("");
             session.setAttribute(studentF.getUsername()+"student",student);
@@ -84,9 +84,10 @@ public class LoginController {
     @PostMapping("/changePassword")
     public Result changePassword(@RequestBody User user){
        if (user.getStatus()==1){//学生
+           System.out.println(user.getPwd());
            Student student = studentService.getById(user.getId());
            if (student==null)return Result.fail().setMsg("wrong id");
-           if (user.getPPassword()!=student.getPassword()) return Result.fail().setMsg("原密码错误");
+           if (!user.getPwd().equals(student.getPassword())) return Result.fail().setMsg("原密码错误");
            student.setPassword(user.getPassword());
            if (studentService.updateById(student)) return Result.ok();
            else return Result.fail().setMsg("stu.pwd修改失败");
@@ -94,7 +95,7 @@ public class LoginController {
         if (user.getStatus()==0){//老师
             Teacher teacher =teacherService.getById(user.getId());
             if (teacher==null)return Result.fail().setMsg("wrong id");
-            if (user.getPPassword()!=teacher.getPassword()) return Result.fail().setMsg("原密码错误");
+            if (!user.getPwd().equals(teacher.getPassword())) return Result.fail().setMsg("原密码错误");
             teacher.setPassword(user.getPassword());
             if (teacherService.updateById(teacher)) return Result.ok();
             else return Result.fail().setMsg("teacher.pwd修改失败");

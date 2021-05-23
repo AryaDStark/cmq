@@ -1,19 +1,20 @@
 package com.ntu.cmqq.dto;
 
 import com.ntu.cmqq.entity.StuSignin;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * @author Arya
- */
 @Getter
 @Setter
-public class SignInDto {
+@NoArgsConstructor
+@AllArgsConstructor
+public class StuSignInDto {
+
     private int id;
 
     private String pre;
@@ -26,8 +27,6 @@ public class SignInDto {
 
     private String status;
 
-    private List<StuSignDto> stuSignDtos;
-
-    private String stuName;
+    private StuSignin stuSignin;
 
 }

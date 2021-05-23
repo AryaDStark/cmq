@@ -1,6 +1,7 @@
 package com.ntu.cmqq.dto;
 
 import com.ntu.cmqq.entity.StuTest;
+import com.ntu.cmqq.entity.StuWork;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,8 @@ public class StuDto {
     private Boolean status;
 
     private StuTest stuTest;
+
+    private StuWork stuWork;
 
 
 }

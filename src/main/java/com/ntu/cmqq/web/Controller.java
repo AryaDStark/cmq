@@ -1,5 +1,6 @@
 package com.ntu.cmqq.web;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.ntu.cmqq.dto.*;
 import com.ntu.cmqq.entity.*;
@@ -81,7 +82,9 @@ public class Controller {
                 QueryWrapper wrapper1 = new QueryWrapper();
                 wrapper1.eq("teach_id",stuTeach.getTeachId());
                 Teach teach = teachService.getById(stuTeach.getTeachId());
-                TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),teach.getIsTop(),teach.getDescription(),null,stuTeachService.count(wrapper1));
+                Teacher teacher = teacherService.getById(teach.getTeacherId());
+                teacher.setPassword("");
+                TeachDto teachDto = new TeachDto(teach.getId(),teach.getTeacherId(),courseService.getById(teach.getCourseId()),stuTeach.getIsTop(),teach.getDescription(),teacher,stuTeachService.count(wrapper1));
                 teachDtos.add(teachDto);
             }
             return Result.ok().setData("teaches",teachDtos);
@@ -139,7 +142,6 @@ public class Controller {
             wrapper.eq("teach_id",teachId);
             //保存signin
             List<Signin> signins = signinService.list(wrapper);
-            if (signins.isEmpty())return Result.fail().setMsg("teachId="+teachId+"无signin");
            for (Signin signin:signins) {
                StuSignin stuSignin = new StuSignin();
                stuSignin.setIsSignin(false);
@@ -149,7 +151,6 @@ public class Controller {
            }
             //保存test
             List<Test> tests=testService.list(wrapper);
-            if (tests.isEmpty()) return Result.fail().setMsg("teachId="+teachId+"无test");
             for (Test test:tests) {
                 StuTest stuTest = new StuTest();
                 stuTest.setTestId(test.getId());
@@ -158,7 +159,6 @@ public class Controller {
             }
             //保存work
             List<Work> works = workService.list(wrapper);
-            if (works.isEmpty()) return Result.fail().setMsg("teachId="+teachId+"无work");
             for (Work work:works) {
                 StuWork stuWork = new StuWork();
                 stuWork.setStudentId(stuId);
@@ -197,46 +197,77 @@ public class Controller {
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("student_id",studentId);
         wrapper.eq("teach_id",teachId);
-        if(stuTeachService.remove(wrapper)) return Result.ok();
-        else return Result.fail();
+        if(!stuTeachService.remove(wrapper)) return Result.fail();
+        QueryWrapper wrapper1 = new QueryWrapper();
+        wrapper1.eq("teach_id",teachId);
+        for (Signin signin:(List<Signin>)signinService.list(wrapper1)){
+            QueryWrapper wrapper2 = new QueryWrapper();
+            wrapper2.eq("signin_id",signin.getId());
+            wrapper2.eq("student_id",studentId);
+            stuSigninService.remove(wrapper2);
+        }
+        for (Test test:(List<Test>)testService.list(wrapper1)){
+            QueryWrapper wrapper2 = new QueryWrapper();
+            wrapper2.eq("test_id",test.getId());
+            wrapper2.eq("student_id",studentId);
+            stuTestService.remove(wrapper2);
+        }
+        for (Work work:(List<Work>)workService.list(wrapper1)){
+            QueryWrapper wrapper2 = new QueryWrapper();
+            wrapper2.eq("work_id",work.getId());
+            wrapper2.eq("student_id",studentId);
+            stuWorkService.remove(wrapper2);
+        }
+        return Result.ok();
+
     }
 
     @GetMapping("/deleteTeach")
     public Result deleteTeach(@RequestParam int teachId){
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("teach_id",teachId);
-        if(!teachService.removeById(teachId)) return Result.fail().setMsg("wrong teachId , teach del fail");
-        if(!stuTeachService.remove(wrapper)) return Result.fail().setMsg("wrong teachId , stuTeach del fail");
+        teachService.removeById(teachId);
+        stuTeachService.remove(wrapper);
          for (Test test:(List<Test>)testService.list(wrapper)){
              QueryWrapper wrapper1 = new QueryWrapper();
-             wrapper.eq("testId",test.getId());
-            if(!stuTestService.remove(wrapper1)) return Result.fail().setMsg("stuTest.testId="+test.getId()+"del fail");
-            if(!meansService.remove(wrapper1)) return Result.fail().setMsg("mean.testId="+test.getId()+"del fail");
+             wrapper1.eq("test_id",test.getId());
+            stuTestService.remove(wrapper1);
+            meansService.remove(wrapper1);
          }
-         if(!testService.remove(wrapper)) return Result.fail().setMsg("test del fail");
+         testService.remove(wrapper);
 
          for (Work work:(List<Work>)workService.list(wrapper)){
              QueryWrapper wrapper1 = new QueryWrapper();
-             wrapper.eq("workId",work.getId());
-             if(!stuWorkService.remove(wrapper1)) return Result.fail().setMsg("stuWork.workId="+work.getId()+"del fail");
+             wrapper1.eq("work_id",work.getId());
+             stuWorkService.remove(wrapper1);
          }
-         if(!workService.remove(wrapper)) return Result.fail().setMsg("work del fail id");
+         workService.remove(wrapper);
 
          for (Signin signin:(List<Signin>) signinService.list(wrapper)){
              QueryWrapper wrapper1 = new QueryWrapper();
-             wrapper.eq("signinId",signin.getId());
-             if(!stuSigninService.remove(wrapper1)) return Result.fail().setMsg("stuSignin.signinId="+signin.getId()+"del fail");
+             wrapper1.eq("signin_id",signin.getId());
+             stuSigninService.remove(wrapper1);
          }
-         if(!signinService.remove(wrapper)) return Result.fail().setMsg("signIn del fail");
-         if(!achieveService.remove(wrapper)) return Result.fail().setMsg("achieve del fail");
-         if(!coursewareService.remove(wrapper)) return Result.fail().setMsg("courseware del fail");
+        signinService.remove(wrapper);
+        achieveService.remove(wrapper);
+        coursewareService.remove(wrapper);
          return Result.ok();
     }
 
     @PostMapping("/createSignin")
     public Result createSignIn(@RequestBody Signin signin){
-        if (signinService.save(signin)) return Result.ok();
-        else return Result.fail();
+        if(!signinService.save(signin)) return Result.fail();
+        int signId = signin.getId();
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",signin.getTeachId());
+         for (StuTeach stuTeach:(List<StuTeach>)stuTeachService.list(wrapper)){
+             StuSignin stuSignin = new StuSignin();
+             stuSignin.setSigninId(signId);
+             stuSignin.setStudentId(stuTeach.getStudentId());
+             stuSignin.setIsSignin(false);
+             stuSigninService.save(stuSignin);
+         }
+         return Result.ok();
     }
 
     @GetMapping("/joinSignin")
@@ -256,19 +287,35 @@ public class Controller {
         wrapper.eq("id",signinId);
         if(!signinService.remove(wrapper)) return Result.fail().setMsg("signin del fail");
         QueryWrapper wrapper1 = new QueryWrapper();
-        wrapper.eq("signin_id",signinId);
+        wrapper1.eq("signin_id",signinId);
         if(!stuSigninService.remove(wrapper1)) return Result.fail().setMsg("stuSignin del fail");
         return Result.ok();
     }
 
     @GetMapping("/getSignin")
-    public Result getSignIn(@RequestParam int signinId,@RequestParam int studentId){
+    public Result getSignIn(@RequestParam int teachId,@RequestParam int studentId){
         QueryWrapper wrapper = new QueryWrapper();
-        Signin signin = signinService.getById(signinId);
-        wrapper.eq("signin_id",signinId);
-        wrapper.eq("student_id",studentId);
-        StuSignin stuSignin = stuSigninService.getOne(wrapper);
-        return Result.ok().setData("signIn",signin).setData("stuSignIN",stuSignin);
+        wrapper.eq("teach_id",teachId);
+        wrapper.orderByDesc("start_time");
+        List<Signin> signins = signinService.list(wrapper);
+        List<StuSignInDto> stuSignInDtos = new ArrayList<>();
+        for (Signin signin:signins){
+            QueryWrapper wrapper1 = new QueryWrapper();
+            wrapper1.eq("student_id",studentId);
+            wrapper1.eq("signin_id",signin.getId());
+            StuSignInDto stuSignInDto = new StuSignInDto(signin.getId(),signin.getPre(),signin.getTeachId(),signin.getStartTime(),signin.getDuringTime(),signin.getStatus(),stuSigninService.getOne(wrapper1));
+            stuSignInDtos.add(stuSignInDto);
+        }
+        return Result.ok().setData("signIns",stuSignInDtos);
+    }
+
+    @GetMapping("/getSigninList")
+    public  Result getSignInResult(@RequestParam int teachId){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        wrapper.orderByDesc("start_time");
+        List<Signin> signins = signinService.list(wrapper);
+        return Result.ok().setData("signIns",signins);
     }
 
     @GetMapping("/getSigninTeacher")
@@ -276,14 +323,19 @@ public class Controller {
         SignInDto signInDto = new SignInDto();
         Signin signin = signinService.getById(signinId);
         QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq("signin_id",signin);
+        wrapper.eq("signin_id",signinId);
         List<StuSignin> stuSignins = stuSigninService.list(wrapper);
+        List<StuSignDto> stuSignDtos = new ArrayList<>();
+        for (StuSignin stuSignin:stuSignins){
+            StuSignDto stuSignDto = new StuSignDto(stuSignin.getStudentId(),stuSignin.getSigninId(),stuSignin.getIsSignin(),studentService.getById(stuSignin.getStudentId()).getNickname());
+            stuSignDtos.add(stuSignDto);
+        }
         signInDto.setId(signinId);
         signInDto.setPre(signin.getPre());
         signInDto.setTeachId(signin.getTeachId());
         signInDto.setStartTime(signin.getStartTime());
         signInDto.setStatus(signin.getStatus());
-        signInDto.setStuSignins(stuSignins);
+        signInDto.setStuSignDtos(stuSignDtos);
         return Result.ok().setData("signIn",signInDto);
     }
 
@@ -294,8 +346,16 @@ public class Controller {
         test.setTime(testDto.getTime());
         test.setName(testDto.getName());
         test.setContent(String.join("//", testDto.getContent()));
-        if (testService.save(test)) return Result.ok();
-        else return Result.fail();
+        if (!testService.save(test)) return Result.fail();
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",testDto.getTeachId());
+        for (StuTeach stuTeach:(List<StuTeach>)stuTeachService.list(wrapper)){
+            StuTest stuTest = new StuTest();
+            stuTest.setTestId(test.getId());
+            stuTest.setStudentId(stuTeach.getStudentId());
+            if (!stuTestService.save(stuTest)) return Result.fail();
+        }
+        return Result.ok();
     }
 
     @PostMapping("/changeTest")
@@ -331,10 +391,11 @@ public class Controller {
             stuTestDto.setId(test.getId());
             stuTestDto.setTeachId(teachId);
             stuTestDto.setTime(test.getTime());
+            stuTestDto.setName(test.getName());
             QueryWrapper wrapper1 = new QueryWrapper();
             wrapper1.eq("test_id",test.getId());
             wrapper1.eq("student_id",studentId);
-            stuTestDto.setStuTest(stuTestService.getOne(wrapper));
+            stuTestDto.setStuTest(stuTestService.getOne(wrapper1));
             stuTestDtos.add(stuTestDto);
         }
         return Result.ok().setData("tests",stuTestDtos);
@@ -358,7 +419,7 @@ public class Controller {
             QueryWrapper wrapper1 = new QueryWrapper();
             wrapper1.eq("test_id",testId);
             wrapper1.eq("student_id",stuTeach.getStudentId());
-            StuDto stuDto = new StuDto(student.getId(),student.getNickname(),student.getSchool(),student.getDescription(),student.getStatus(),stuTestService.getOne(wrapper1));
+            StuDto stuDto = new StuDto(student.getId(),student.getNickname(),student.getSchool(),student.getDescription(),student.getStatus(),stuTestService.getOne(wrapper1),null);
             stuDtos.add(stuDto);
         }
         return Result.ok().setData("students",stuDtos);
@@ -369,7 +430,17 @@ public class Controller {
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("test_id",testId);
         wrapper.eq("student_id",studentId);
-        return Result.ok().setData("test",testService.getById(testId)).setData("stuTest",stuTestService.getOne(wrapper));
+        Test test = testService.getById(testId);
+        TestDto testDto = new TestDto(test.getId(),test.getTeachId(),test.getTime(),test.getName(),test.getContent().split("//"));
+        StuTest stuTest = stuTestService.getOne(wrapper);
+        TestStuDto testStuDto =null;
+        if (stuTest.getContent()!=null) {
+             testStuDto = new TestStuDto(stuTest.getTestId(), stuTest.getStudentId(), stuTest.getScore(), stuTest.getContent().split("//"), stuTest.getIsPush());
+        }
+        else {
+             testStuDto = new TestStuDto(stuTest.getTestId(), stuTest.getStudentId(), stuTest.getScore(), null, stuTest.getIsPush());
+        }
+        return Result.ok().setData("test",testDto).setData("stuTest",testStuDto);
     }
 
     @PostMapping("/giveTestScore")
@@ -379,7 +450,23 @@ public class Controller {
         wrapper.eq("test_id",stuTestF.getTestId());
         StuTest stuTest = stuTestService.getOne(wrapper);
         stuTest.setScore(stuTestF.getScore());
-        if (stuTestService.updateById(stuTest)) return Result.ok();
+        if (stuTestService.update(stuTest,wrapper)) return Result.ok();
+        else return Result.fail();
+    }
+
+    @PostMapping("/giveStudentTest")
+    public Result giveStudentTest(@RequestBody TestStuDto testStuDto){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("test_id",testStuDto.getTestId());
+        wrapper.eq("student_id",testStuDto.getStudentId());
+        StuTest stuTestTemp = stuTestService.getOne(wrapper);
+        StuTest stuTest = new StuTest();
+        stuTest.setTestId(testStuDto.getTestId());
+        stuTest.setStudentId(testStuDto.getStudentId());
+        stuTest.setScore(stuTestTemp.getScore());
+        stuTest.setIsPush(true);
+        stuTest.setContent(String.join("//",testStuDto.getContent()));
+        if (stuTestService.update(stuTest,wrapper)) return Result.ok();
         else return Result.fail();
     }
 
@@ -392,14 +479,14 @@ public class Controller {
     }
 
     @PostMapping("/createWork")
-    public Result createWork(@RequestBody WorkDto workDto){
+    public Result createWork(@RequestBody Work workF){
         Work work = new Work();
-        work.setTeachId(workDto.getTeachId());
-        work.setContent(String.join("//",workDto.getContent()));
-        work.setName(workDto.getName());
+        work.setTeachId(workF.getTeachId());
+        work.setContent(workF.getContent());
+        work.setName(workF.getName());
         workService.save(work);
         QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq("teach_id",workDto.getTeachId());
+        wrapper.eq("teach_id",workF.getTeachId());
         for (StuTeach stuTeach:(List<StuTeach>)stuTeachService.list(wrapper)){
             StuWork stuWork = new StuWork();
             stuWork.setWorkId(work.getId());
@@ -410,11 +497,12 @@ public class Controller {
     }
 
     @PostMapping("/changeWork")
-    public Result changeWork(@RequestBody WorkDto workDto){
+    public Result changeWork(@RequestBody Work workF){
         Work work = new Work();
-        work.setId(workDto.getId());
-        work.setName(workDto.getName());
-        work.setContent(String.join("//",workDto.getContent()));
+        work.setId(workF.getId());
+        work.setName(workF.getName());
+        work.setContent(workF.getContent());
+        work.setTeachId(workService.getById(workF.getId()).getTeachId());
         if (workService.updateById(work)) return Result.ok();
         else return Result.fail();
 
@@ -434,23 +522,26 @@ public class Controller {
             wrapper1.eq("work_id",work.getId());
             wrapper1.eq("student_id",studentId);
             workDto.setStuWork(stuWorkService.getOne(wrapper1));
-            workDto.setContent(work.getContent().split("//"));
+            workDto.setContent(work.getContent());
             workDtos.add(workDto);
         }
         return Result.ok().setData("works",workDtos);
     }
 
     @GetMapping("/getStudentWorkDetailList")
-    public Result getStuWorkDetail(@RequestParam int teachId){
+    public Result getStuWorkDetail(@RequestParam int teachId,@RequestParam int workId){
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("teach_id",teachId);
-        List<Student> students = new ArrayList<>();
+        List<StuDto> stuDtos = new ArrayList<>();
         for (StuTeach stuTeach:(List<StuTeach>)stuTeachService.list(wrapper)){
             Student student = studentService.getById(stuTeach.getStudentId());
-            student.setPassword("");
-            students.add(student);
+            QueryWrapper wrapper1 = new QueryWrapper();
+            wrapper1.eq("student_id",student.getId());
+            wrapper1.eq("work_id",workId);
+            StuDto stuDto = new StuDto(student.getId(),student.getNickname(),student.getSchool(),student.getDescription(),student.getStatus(),null,stuWorkService.getOne(wrapper1));
+            stuDtos.add(stuDto);
         }
-        return Result.ok().setData("students",students);
+        return Result.ok().setData("students",stuDtos);
     }
 
     @GetMapping("/deleteWork")
@@ -478,8 +569,7 @@ public class Controller {
     }
 
     @PostMapping("/updateMeans")
-    public Result upMeans(@RequestBody FileDto fileDto){
-        MultipartFile file = fileDto.getFile();
+    public Result upMeans(@RequestParam MultipartFile file,@RequestParam String fName,@RequestParam int teachId){
         if (file.isEmpty())return Result.fail().setMsg("file wrong");
         String fileName = file.getOriginalFilename();
        //存储路径
@@ -490,8 +580,8 @@ public class Controller {
         try {
             file.transferTo(dest);
             Means means = new Means();
-            means.setName(fileDto.getName());
-            means.setTeachId(fileDto.getTeachId());
+            means.setName(fName);
+            means.setTeachId(teachId);
             means.setAddress(address);
             if (meansService.save(means)) return Result.ok();
             else return Result.fail().setMsg("save fail");
@@ -529,11 +619,7 @@ public class Controller {
     }
 
     @PostMapping("/createCourseware")
-    public Result createCourseware(@RequestBody CoursewareDto coursewareDto){
-        Courseware courseware = new Courseware();
-        courseware.setName(coursewareDto.getName());
-        courseware.setTeachId(coursewareDto.getTeachId());
-        courseware.setContent(String.join("//",coursewareDto.getContent()));
+    public Result createCourseware(@RequestBody Courseware courseware){
         if (coursewareService.save(courseware)) return Result.ok();
         else return  Result.fail();
     }
@@ -552,11 +638,7 @@ public class Controller {
     }
 
     @PostMapping("/changeCourseware")
-    public Result changeCourseware(@RequestBody CoursewareDto coursewareDto){
-        Courseware courseware = new Courseware();
-        courseware.setId(coursewareDto.getId());
-        courseware.setName(coursewareDto.getName());
-        courseware.setContent(String.join("//",coursewareDto.getContent()));
+    public Result changeCourseware(@RequestBody Courseware courseware){
        if(coursewareService.updateById(courseware)) return Result.ok() ;
        else return Result.fail();
     }
@@ -572,25 +654,49 @@ public class Controller {
     public Result changeAchieve(@RequestBody Achieve achieveF){
         Achieve achieve = achieveService.getById(achieveF.getId());
         achieve.setTest(achieveF.getTest());
-        achieveF.setWork(achieveF.getWork());
+        achieve.setWork(achieveF.getWork());
         if (achieveService.updateById(achieve)) return Result.ok();
         else return Result.fail();
     }
 
     @GetMapping("/getScore")
     public Result getScore(@RequestParam int teachId,@RequestParam int studentId){
+        double testSum = 0;
+        double testScore = 0;
+        double workSum = 0;
+        double workScore = 0;
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("teach_id",teachId);
+        List<Test> tests = testService.list(wrapper);
+        if (!tests.isEmpty()){
+        for (Test test:tests){
+          QueryWrapper wrapper1 = new QueryWrapper();
+          wrapper1.eq("test_id",test.getId());
+          wrapper1.eq("student_id",studentId);
+          Integer score =stuTestService.getOne(wrapper1).getScore();
+          if (null==score) score=0;
+          testSum = testSum + score;
+        }
+        testScore = testSum/(tests.size());
+        }
+        List<Work> works = workService.list(wrapper);
+        if (!works.isEmpty()) {
+            for (Work work : works) {
+                QueryWrapper wrapper1 = new QueryWrapper();
+                wrapper1.eq("work_id", work.getId());
+                wrapper1.eq("student_id", studentId);
+                Integer score =stuWorkService.getOne(wrapper1).getScore();
+                if (null==score) score=0;
+                workSum = workSum + score;
+            }
+            workScore = workSum/(works.size());
+        }
+        QueryWrapper queryWrapper = new QueryWrapper();
+        queryWrapper.eq("teach_id",teachId);
         Achieve achieve = achieveService.getOne(wrapper);
-        String testStr = achieve.getTest();
-        String workStr = achieve.getWork();
-        QueryWrapper wrapper1 = new QueryWrapper();
-        wrapper1.eq("student_id",studentId);
-        StuTest stuTest = stuTestService.getOne(wrapper1);
-        int scoreT = stuTest.getScore();
-        StuWork stuWork = stuWorkService.getOne(wrapper1);
-        int scoreW = stuWork.getScore();
-        return Result.ok().setData("score",scoreT*Double.parseDouble(testStr)+scoreW*Double.parseDouble(workStr));
+        double testPercent = Double.parseDouble(achieve.getTest());
+        double workPercent = Double.parseDouble(achieve.getWork());
+        return Result.ok().setData("score",testScore*testPercent+workScore*workPercent);
     }
 
 

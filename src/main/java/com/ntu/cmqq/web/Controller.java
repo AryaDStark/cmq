@@ -16,9 +16,7 @@ import org.apache.commons.io.IOUtils;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Arya
@@ -697,6 +695,50 @@ public class Controller {
         double testPercent = Double.parseDouble(achieve.getTest());
         double workPercent = Double.parseDouble(achieve.getWork());
         return Result.ok().setData("score",testScore*testPercent+workScore*workPercent);
+    }
+
+    @GetMapping("/rank")
+    public Result rankStu(int teachId){
+        List<StudentDto> studentDtos = new ArrayList<>();
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("teach_id",teachId);
+        for (Student student:(List<Student>)stuTeachService.list(wrapper)){
+            double testSum = 0;
+            double testScore = 0;
+            double workSum = 0;
+            double workScore = 0;
+            double testAchieve = Double.parseDouble(achieveService.getOne(wrapper).getTest());
+            double workAchieve = Double.parseDouble(achieveService.getOne(wrapper).getWork());
+            List<Test> tests = testService.list(wrapper);
+            if (!tests.isEmpty()){
+                for (Test test:tests){
+                    QueryWrapper wrapper1 = new QueryWrapper();
+                    wrapper1.eq("test_id",test.getId());
+                    wrapper1.eq("student_id",student.getId());
+                    Integer score =stuTestService.getOne(wrapper1).getScore();
+                    if (null==score) score=0;
+                    testSum = testSum + score;
+                }
+                testScore = testSum/(tests.size());
+            }
+            List<Work> works = workService.list(wrapper);
+            if (!works.isEmpty()) {
+                for (Work work : works) {
+                    QueryWrapper wrapper1 = new QueryWrapper();
+                    wrapper1.eq("work_id", work.getId());
+                    wrapper1.eq("student_id", student.getId());
+                    Integer score =stuWorkService.getOne(wrapper1).getScore();
+                    if (null==score) score=0;
+                    workSum = workSum + score;
+                }
+                workScore = workSum/(works.size());
+            }
+            double sum = testScore*testAchieve+workScore*workAchieve;
+            StudentDto studentDto = new StudentDto(student.getId(),student.getNickname(),student.getSchool(),student.getDescription(),student.getStatus(),"","",sum);
+            studentDtos.add(studentDto);
+        }
+        Collections.sort(studentDtos);
+        return Result.ok().setData("students",studentDtos);
     }
 
 
